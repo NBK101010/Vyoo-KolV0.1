@@ -1,38 +1,49 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>Kolkata POI Map with Filters</title>
+  <title>Kolkata POI Map + Heatmap</title>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <!-- Leaflet CSS -->
   <link
     rel="stylesheet"
     href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
   />
   <style>
     body { margin: 0; padding: 0; }
-    #controls { padding: 10px; background: #f8f8f8; }
+    #controls {
+      padding: 10px;
+      background: #f8f8f8;
+      display: flex;
+      gap: 1rem;
+      align-items: center;
+    }
     #map { height: 90vh; width: 100%; }
   </style>
 </head>
 <body>
 
-  <!-- CATEGORY FILTER: lets users pick which POIs to display -->
+  <!-- CONTROLS: Category & View Selector -->
   <div id="controls">
-    <label for="categoryFilter">Show category:</label>
+    <label for="categoryFilter">Show:</label>
     <select id="categoryFilter" onchange="filterPOIs()">
       <option value="All">All Categories</option>
       <option value="Tourist">Tourist</option>
       <option value="Food">Food</option>
       <option value="Shopping">Shopping</option>
+      <option value="Heatmap">Heatmap</option>
     </select>
   </div>
 
   <!-- MAP CONTAINER -->
   <div id="map"></div>
 
+  <!-- Leaflet & Heatmap Plugin -->
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <script src="https://unpkg.com/leaflet.heat/dist/leaflet-heat.js"></script>
+
   <script>
-    // 1. Initialize the map centered on Kolkata
+    // 1. Initialize the map
     const map = L.map('map').setView([22.5726, 88.3639], 13);
 
     // 2. Load OpenStreetMap tiles
@@ -40,50 +51,66 @@
       attribution: '&copy; OpenStreetMap contributors'
     }).addTo(map);
 
-    // 3. POI dataset with category tags
+    // 3. Static POIs with categories
     const poiData = [
-      { name: "Victoria Memorial",             lat:22.5448, lng:88.3426, category:"Tourist"  },
-      { name: "Howrah Bridge",                 lat:22.5850, lng:88.3468, category:"Tourist"  },
-      { name: "Indian Museum",                 lat:22.5566, lng:88.3522, category:"Tourist"  },
-      { name: "Birla Planetarium",             lat:22.5535, lng:88.3428, category:"Tourist"  },
-      { name: "Belur Math",                    lat:22.6326, lng:88.3570, category:"Tourist"  },
-      { name: "Barbeque Nation – New Market",  lat:22.5562, lng:88.3529, category:"Food"     },
-      { name: "KFC – New Empire Cinema",       lat:22.5568, lng:88.3531, category:"Food"     },
-      { name: "Kasturi",                       lat:22.5582, lng:88.3537, category:"Food"     },
-      { name: "Tung Nam Eating House",         lat:22.5739, lng:88.3591, category:"Food"     },
-      { name: "South City Mall",               lat:22.5731, lng:88.3648, category:"Shopping" },
-      { name: "Quest Mall",                    lat:22.5395, lng:88.3652, category:"Shopping" },
-      { name: "Park Street Market",            lat:22.5678, lng:88.3704, category:"Shopping" },
-      { name: "Esplanade Metro Station",       lat:22.5811, lng:88.3882, category:"Shopping" }
+      // Tourist
+      { name: "Victoria Memorial", lat:22.5448, lng:88.3426, category:"Tourist" },
+      { name: "Howrah Bridge",     lat:22.5850, lng:88.3468, category:"Tourist" },
+      // Food
+      { name: "Barbeque Nation – New Market", lat:22.5562, lng:88.3529, category:"Food" },
+      { name: "Tung Nam Eating House",         lat:22.5739, lng:88.3591, category:"Food" },
+      // Shopping
+      { name: "South City Mall", lat:22.5731, lng:88.3648, category:"Shopping" },
+      { name: "Quest Mall",      lat:22.5395, lng:88.3652, category:"Shopping" }
     ];
 
-    // 4. Global array to hold marker references
+    // 4. Sample footfall data for heatmap: [lat, lng, intensity]
+    let cameraFootfall = [
+      [22.5731, 88.3648, 60000],   // South City Mall avg visitors
+      [22.5678, 88.3704, 566000],  // Blue Line (Park Street area)
+      [22.5766, 88.3468, 47690]    // East-West Howrah section
+    ];
+
+    // 5. Create heat layer (but don’t add yet)
+    const heat = L.heatLayer(cameraFootfall, {
+      radius: 25,
+      blur: 15,
+      maxZoom: 17,
+      max: 566000
+    });
+
+    // 6. Prepare marker storage
     let markers = [];
 
-    // 5. Function to draw markers based on filtered data
+    // 7. Render markers for given POI array
     function showMarkers(data) {
-      // Remove existing markers
       markers.forEach(m => map.removeLayer(m));
       markers = [];
-      // Add new markers
       data.forEach(poi => {
         const m = L.marker([poi.lat, poi.lng])
-                    .bindPopup(`<strong>${poi.name}</strong><br>Category: ${poi.category}`)
+                    .bindPopup(`<strong>${poi.name}</strong><br>${poi.category}`)
                     .addTo(map);
         markers.push(m);
       });
     }
 
-    // 6. Function to filter POIs by selected category
+    // 8. Filter handler: toggles between categories & heatmap
     function filterPOIs() {
       const cat = document.getElementById("categoryFilter").value;
-      const filtered = cat === "All"
-        ? poiData
-        : poiData.filter(p => p.category === cat);
-      showMarkers(filtered);
+      // If Heatmap selected
+      if (cat === "Heatmap") {
+        markers.forEach(m => map.removeLayer(m));
+        heat.addTo(map);
+      } else {
+        map.removeLayer(heat);
+        const filtered = cat === "All"
+          ? poiData
+          : poiData.filter(p => p.category === cat);
+        showMarkers(filtered);
+      }
     }
 
-    // 7. Initial draw of all markers
+    // 9. Initial draw
     filterPOIs();
   </script>
 </body>
