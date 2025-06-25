@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Kolkata POI Map</title>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <style>
+    #map { height: 100vh; width: 100%; }
+    body { margin: 0; padding: 0; }
+  </style>
+</head>
+<body>
+  <div id="map"></div>
+
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <script>
+    var map = L.map('map').setView([22.5726, 88.3639], 13); // Kolkata center
+
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      attribution: '&copy; OpenStreetMap contributors'
+    }).addTo(map);
+
+    const poiData = [
+      { lat: 22.5731, lng: 88.3648, title: "South City Mall" },
+      { lat: 22.5678, lng: 88.3704, title: "Park Street Market" },
+      { lat: 22.5811, lng: 88.3882, title: "Esplanade Metro" },
+      { lat: 22.5562, lng: 88.3529, title: "Barbeque Nation - New Market" },
+      { lat: 22.5568, lng: 88.3531, title: "KFC - New Empire Cinema" },
+      { lat: 22.5582, lng: 88.3537, title: "Kasturi Restaurant" },
+      { lat: 22.5525, lng: 88.3520, title: "Carpe Diem - Park Street" },
+      { lat: 22.5670, lng: 88.3555, title: "Masala Wok - Chandni Chowk" },
+      { lat: 22.5739, lng: 88.3591, title: "Tung Nam Eating House" },
+      { lat: 22.5675, lng: 88.3533, title: "Anadi Cabin" },
+      { lat: 22.5395, lng: 88.3652, title: "Bombay Brasserie - Quest Mall" },
+      { lat: 22.5448, lng: 88.3426, title: "Victoria Memorial" },
+      { lat: 22.5850, lng: 88.3468, title: "Howrah Bridge" },
+      { lat: 22.5566, lng: 88.3522, title: "Indian Museum" },
+      { lat: 22.5535, lng: 88.3428, title: "Birla Planetarium" },
+      { lat: 22.6326, lng: 88.3570, title: "Belur Math" },
+
+
+
+    ];
+
+    poiData.forEach(poi => {
+      L.marker([poi.lat, poi.lng]).addTo(map)
+        .bindPopup(poi.title);
+    });
+  </script>
+</body>
+</html>
