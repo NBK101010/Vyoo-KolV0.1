@@ -22,35 +22,34 @@
   <!-- 3. Mapbox GL JS -->
   <script src="https://api.mapbox.com/mapbox-gl-js/v2.15.0/mapbox-gl.js"></script>
   <script>
-    // 4. Your public Mapbox token (safe for client-side use)
-    mapboxgl.accessToken = 'YOUR_MAPBOX_PUBLIC_TOKEN';
+    // 4. Your public Mapbox token (restricted to your URLs)
+    mapboxgl.accessToken = 'pk.eyJ1IjoibmJrMTAxMDEwIiwiYSI6ImNtY2cyb3lhNDBmbDEycXNkOHFlMHU4ZGsifQ.5zGBPGcJBPsreNsn8eAc1A';
 
     // 5. Initialize the map centered on Kolkata
     const map = new mapboxgl.Map({
-      container: 'map',                    // container ID
+      container: 'map',                            // container ID
       style: 'mapbox://styles/mapbox/streets-v12', // style URL
-      center: [88.3639, 22.5726],          // starting position [lng, lat]
-      zoom: 12                             // starting zoom
+      center: [88.3639, 22.5726],                  // starting [lng, lat]
+      zoom: 12                                     // starting zoom
     });
 
     // 6. Define your POIs
     const poiData = [
-      { name: "Victoria Memorial",        lat:22.5448, lng:88.3426 },
-      { name: "Howrah Bridge",            lat:22.5850, lng:88.3468 },
-      { name: "South City Mall",          lat:22.5731, lng:88.3648 },
-      { name: "Kasturi Restaurant",       lat:22.5582, lng:88.3537 },
-      { name: "Quest Mall",               lat:22.5395, lng:88.3652 },
-      { name: "Tung Nam Eating House",    lat:22.5739, lng:88.3591 }
+      { name: "Victoria Memorial",     lat:22.5448, lng:88.3426 },
+      { name: "Howrah Bridge",         lat:22.5850, lng:88.3468 },
+      { name: "South City Mall",       lat:22.5731, lng:88.3648 },
+      { name: "Kasturi Restaurant",    lat:22.5582, lng:88.3537 },
+      { name: "Quest Mall",            lat:22.5395, lng:88.3652 },
+      { name: "Tung Nam Eating House", lat:22.5739, lng:88.3591 }
     ];
 
     // 7. When map loads, add markers & popups
     map.on('load', () => {
       poiData.forEach(poi => {
-        // create a default Marker and set its coordinates
         new mapboxgl.Marker()
           .setLngLat([poi.lng, poi.lat])
           .setPopup(
-            new mapboxgl.Popup({ offset: 25 }) // add popups
+            new mapboxgl.Popup({ offset: 25 })
               .setHTML(`<strong>${poi.name}</strong>`)
           )
           .addTo(map);
