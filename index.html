@@ -1,117 +1,61 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-  <title>Kolkata POI Map + Heatmap</title>
   <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <!-- Leaflet CSS -->
+  <title>Kolkata POIs with Mapbox</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <!-- 1. Mapbox GL JS CSS -->
   <link
+    href="https://api.mapbox.com/mapbox-gl-js/v2.15.0/mapbox-gl.css"
     rel="stylesheet"
-    href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
   />
   <style>
-    body { margin: 0; padding: 0; }
-    #controls {
-      padding: 10px;
-      background: #f8f8f8;
-      display: flex;
-      gap: 1rem;
-      align-items: center;
-    }
-    #map { height: 90vh; width: 100%; }
+    body, html { margin:0; padding:0; height:100%; }
+    #map { position:absolute; top:0; bottom:0; width:100%; }
   </style>
 </head>
 <body>
 
-  <!-- CONTROLS: Category & View Selector -->
-  <div id="controls">
-    <label for="categoryFilter">Show:</label>
-    <select id="categoryFilter" onchange="filterPOIs()">
-      <option value="All">All Categories</option>
-      <option value="Tourist">Tourist</option>
-      <option value="Food">Food</option>
-      <option value="Shopping">Shopping</option>
-      <option value="Heatmap">Heatmap</option>
-    </select>
-  </div>
-
-  <!-- MAP CONTAINER -->
+  <!-- 2. Map Container -->
   <div id="map"></div>
 
-  <!-- Leaflet & Heatmap Plugin -->
-  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-  <script src="https://unpkg.com/leaflet.heat/dist/leaflet-heat.js"></script>
-
+  <!-- 3. Mapbox GL JS -->
+  <script src="https://api.mapbox.com/mapbox-gl-js/v2.15.0/mapbox-gl.js"></script>
   <script>
-    // 1. Initialize the map
-    const map = L.map('map').setView([22.5726, 88.3639], 13);
+    // 4. Your public Mapbox token (safe for client-side use)
+    mapboxgl.accessToken = 'YOUR_MAPBOX_PUBLIC_TOKEN';
 
-    // 2. Load OpenStreetMap tiles
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-      attribution: '&copy; OpenStreetMap contributors'
-    }).addTo(map);
-
-    // 3. Static POIs with categories
-    const poiData = [
-      // Tourist
-      { name: "Victoria Memorial", lat:22.5448, lng:88.3426, category:"Tourist" },
-      { name: "Howrah Bridge",     lat:22.5850, lng:88.3468, category:"Tourist" },
-      // Food
-      { name: "Barbeque Nation – New Market", lat:22.5562, lng:88.3529, category:"Food" },
-      { name: "Tung Nam Eating House",         lat:22.5739, lng:88.3591, category:"Food" },
-      // Shopping
-      { name: "South City Mall", lat:22.5731, lng:88.3648, category:"Shopping" },
-      { name: "Quest Mall",      lat:22.5395, lng:88.3652, category:"Shopping" }
-    ];
-
-    // 4. Sample footfall data for heatmap: [lat, lng, intensity]
-    let cameraFootfall = [
-      [22.5731, 88.3648, 60000],   // South City Mall avg visitors
-      [22.5678, 88.3704, 566000],  // Blue Line (Park Street area)
-      [22.5766, 88.3468, 47690]    // East-West Howrah section
-    ];
-
-    // 5. Create heat layer (but don’t add yet)
-    const heat = L.heatLayer(cameraFootfall, {
-      radius: 25,
-      blur: 15,
-      maxZoom: 17,
-      max: 566000
+    // 5. Initialize the map centered on Kolkata
+    const map = new mapboxgl.Map({
+      container: 'map',                    // container ID
+      style: 'mapbox://styles/mapbox/streets-v12', // style URL
+      center: [88.3639, 22.5726],          // starting position [lng, lat]
+      zoom: 12                             // starting zoom
     });
 
-    // 6. Prepare marker storage
-    let markers = [];
+    // 6. Define your POIs
+    const poiData = [
+      { name: "Victoria Memorial",        lat:22.5448, lng:88.3426 },
+      { name: "Howrah Bridge",            lat:22.5850, lng:88.3468 },
+      { name: "South City Mall",          lat:22.5731, lng:88.3648 },
+      { name: "Kasturi Restaurant",       lat:22.5582, lng:88.3537 },
+      { name: "Quest Mall",               lat:22.5395, lng:88.3652 },
+      { name: "Tung Nam Eating House",    lat:22.5739, lng:88.3591 }
+    ];
 
-    // 7. Render markers for given POI array
-    function showMarkers(data) {
-      markers.forEach(m => map.removeLayer(m));
-      markers = [];
-      data.forEach(poi => {
-        const m = L.marker([poi.lat, poi.lng])
-                    .bindPopup(`<strong>${poi.name}</strong><br>${poi.category}`)
-                    .addTo(map);
-        markers.push(m);
+    // 7. When map loads, add markers & popups
+    map.on('load', () => {
+      poiData.forEach(poi => {
+        // create a default Marker and set its coordinates
+        new mapboxgl.Marker()
+          .setLngLat([poi.lng, poi.lat])
+          .setPopup(
+            new mapboxgl.Popup({ offset: 25 }) // add popups
+              .setHTML(`<strong>${poi.name}</strong>`)
+          )
+          .addTo(map);
       });
-    }
-
-    // 8. Filter handler: toggles between categories & heatmap
-    function filterPOIs() {
-      const cat = document.getElementById("categoryFilter").value;
-      // If Heatmap selected
-      if (cat === "Heatmap") {
-        markers.forEach(m => map.removeLayer(m));
-        heat.addTo(map);
-      } else {
-        map.removeLayer(heat);
-        const filtered = cat === "All"
-          ? poiData
-          : poiData.filter(p => p.category === cat);
-        showMarkers(filtered);
-      }
-    }
-
-    // 9. Initial draw
-    filterPOIs();
+    });
   </script>
 </body>
 </html>
